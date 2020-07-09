@@ -16,6 +16,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 // PublicSuffixList provides the public suffix of a domain. For example:
@@ -119,15 +121,32 @@ func (j *Jar) Copy() *Jar {
 	}
 }
 
-// MarshalJSON my impl
+// MarshalJSON to marshal to json
 func (j *Jar) MarshalJSON() ([]byte, error) {
 	return json.Marshal(j.entries)
 }
 
-// UnmarshalJSON my impl
+// UnmarshalJSON to marshal to json
 func (j *Jar) UnmarshalJSON(data []byte) error {
 	entries := make(map[string]map[string]entry)
 	if err := json.Unmarshal(data, &entries); err != nil {
+		return err
+	}
+	j.mu.Lock()
+	j.entries = entries
+	j.mu.Unlock()
+	return nil
+}
+
+// MarshalYAML to marshal to yaml
+func (j *Jar) MarshalYAML() ([]byte, error) {
+	return yaml.Marshal(j.entries)
+}
+
+// UnmarshalYAML to marshal to yaml
+func (j *Jar) UnmarshalYAML(data []byte) error {
+	entries := make(map[string]map[string]entry)
+	if err := yaml.Unmarshal(data, &entries); err != nil {
 		return err
 	}
 	j.mu.Lock()
